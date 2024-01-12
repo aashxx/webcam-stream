@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebCam Stream</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz" crossorigin="anonymous"></script>
+</head>
+<body>
+  <video id="webcam" autoplay></video>
+  <script>
+    const socket = io.connect('http://localhost:3000');
+    const video = document.getElementById('webcam');
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then((stream) => {
+        video.srcObject = stream;
+
+        const videoTrack = stream.getVideoTracks()[0];
+        const sender = socket.emit('webcamFrame', { frame: videoTrack });
+
+        socket.on('webcamFrame', (frameData) => {
+          video.srcObject = new MediaStream([frameData.frame]);
+        });
+      })
+      .catch((error) => {
+        console.error('Error accessing webcam:', error);
+      });
+  </script>
+</body>
+</html>
